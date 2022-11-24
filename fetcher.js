@@ -16,7 +16,25 @@ const fetchHTML = (webpage, fileLocation) => request(webpage, (error, response, 
     process.exit();
   }
 
-  writeToFile(body, fileLocation, webpage);
+  // Ask for overwrite if file already exists
+  if (fs.existsSync(fileLocation)) {
+    rl.setPrompt('File already exists, would you like to overwrite?\n(y/n) ');
+    rl.prompt();
+
+    rl.on('line', (input) => {
+      if (input !== 'y') {
+        process.exit();
+      }
+      rl.close();
+    }).on('close', () => {
+      writeToFile(body, fileLocation, webpage);
+    });
+  }
+
+  if (!fs.existsSync(fileLocation)) {
+    writeToFile(body, fileLocation, webpage);
+  }
+
 });
 
 
@@ -26,6 +44,7 @@ const writeToFile = (content, fileLocation, webpage) => {
       console.error('Write Error: file path is invalid');
       process.exit();
     }
+    
     console.log(`\nSuccess!\nFile written from ${webpage}\nDownloaded ${(content.length / 1000).toFixed(2)}MB to ${dir}${fileLocation}\n`);
     process.exit();
   });
